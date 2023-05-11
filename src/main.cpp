@@ -137,6 +137,22 @@ int main() {
             std::cout << "          Device local mem size: " << (deviceLocalMemSize >> 10) << " KB" << std::endl;
 
             // - Еще пару или более свойств устройства, которые вам покажутся наиболее интересными
+
+            size_t deviceMaxWorkGroupSize = 0;
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &deviceMaxWorkGroupSize, nullptr));
+            std::cout << "          Device max work group size: " << (deviceMaxWorkGroupSize) << "" << std::endl;
+
+            cl_ulong deviceMaxWorkItemDim = 0;
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_ulong), &deviceMaxWorkItemDim, nullptr));
+            std::cout << "          Device max work item dimensions: " << (deviceMaxWorkItemDim) << "" << std::endl;
+
+            std::vector<size_t> deviceMaxWorkItemSizes(deviceMaxWorkItemDim, 0);
+            OCL_SAFE_CALL(clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(cl_ulong) * deviceMaxWorkItemDim, deviceMaxWorkItemSizes.data(), nullptr));
+            std::cout << "          Device max work group sizes: ";
+            for (size_t i = 0; i < deviceMaxWorkItemDim; i++) {
+                std::cout << deviceMaxWorkItemSizes[i] << " ";
+            } 
+            std::cout << std::endl;
         }
     }
     return 0;
