@@ -4,7 +4,7 @@
 
 # Задание 0. Вводное.
 
-[![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task00&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task00&event=push)](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml)
 
 Установка OpenCL-драйвера для процессора
 ========================================
