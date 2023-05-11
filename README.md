@@ -3,14 +3,14 @@
 Задания
 ======
 
-- [Задание 0](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task00): Вводное. (5 баллов)
-- [Задание 1](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task01): A+B. (5 баллов)
-- [Задание 2](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task02): Теоретическое задание: параллелизуемость/code divergence/memory coalesced access. (5 баллов)
-- [Задание 3](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task03): Фрактал Мандельброта. Сумма чисел. (10 баллов)
-- [Задание 4](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task04): Транспонирование матрицы, умножение матриц. (10 баллов)
-- [Задание 5](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task05): Merge sort. (10 баллов)
-- [Задание 6](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task06): Bitonic sort, prefix sum, radix sort. (15 баллов)
-- [Задание 7](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task07): SDF. (5 баллов)
+- [Задание 0](https://github.com/lixhappy/GPGPUTasks2022/tree/task00): Вводное. (5 баллов)
+- [Задание 1](https://github.com/lixhappy/GPGPUTasks2022/tree/task01): A+B. (5 баллов)
+- [Задание 2](https://github.com/lixhappy/GPGPUTasks2022/tree/task02): Теоретическое задание: параллелизуемость/code divergence/memory coalesced access. (5 баллов)
+- [Задание 3](https://github.com/lixhappy/GPGPUTasks2022/tree/task03): Фрактал Мандельброта. Сумма чисел. (10 баллов)
+- [Задание 4](https://github.com/lixhappy/GPGPUTasks2022/tree/task04): Транспонирование матрицы, умножение матриц. (10 баллов)
+- [Задание 5](https://github.com/lixhappy/GPGPUTasks2022/tree/task05): Merge sort. (10 баллов)
+- [Задание 6](https://github.com/lixhappy/GPGPUTasks2022/tree/task06): Bitonic sort, prefix sum, radix sort. (15 баллов)
+- [Задание 7](https://github.com/lixhappy/GPGPUTasks2022/tree/task07): SDF. (5 баллов)
 
 Оценка
 ======
