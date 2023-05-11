@@ -32,6 +32,29 @@ void reportError(cl_int err, const std::string &filename, int line) {
 #define OCL_SAFE_CALL(expr) reportError(expr, __FILE__, __LINE__)
 
 
+cl_device_id findDevice(cl_platform_id* platforms, cl_uint platformCount, cl_device_type deviceType = CL_DEVICE_TYPE_GPU) {
+    for (size_t platformIndex = 0; platformIndex < platformCount; platformIndex++) {
+        cl_platform_id platform = platforms[platformIndex];
+        
+        cl_uint devicesCount = 0;
+        OCL_SAFE_CALL(clGetDeviceIDs(platform, deviceType, 0, nullptr, &devicesCount));
+        if (devicesCount == 0) { continue; }
+
+        std::vector<cl_device_id> devices(devicesCount, 0);
+        OCL_SAFE_CALL(clGetDeviceIDs(platform, deviceType, devicesCount, devices.data(), nullptr));
+
+        return devices[0];
+    }
+
+    if (deviceType == CL_DEVICE_TYPE_GPU) {
+        return findDevice(platforms, platformCount, CL_DEVICE_TYPE_CPU);
+    } else if (deviceType == CL_DEVICE_TYPE_CPU) { 
+        return findDevice(platforms, platformCount, CL_DEVICE_TYPE_ALL);
+    }
+    
+    reportError(CL_DEVICE_NOT_FOUND, __FILE__, __LINE__);
+}
+
 int main() {
     // Пытаемся слинковаться с символами OpenCL API в runtime (через библиотеку clew)
     if (!ocl_init())
@@ -39,6 +62,13 @@ int main() {
 
     // TODO 1 По аналогии с предыдущим заданием узнайте, какие есть устройства, и выберите из них какое-нибудь
     // (если в списке устройств есть хоть одна видеокарта - выберите ее, если нету - выбирайте процессор)
+
+    cl_uint platformCount = 0;
+    OCL_SAFE_CALL(clGetPlatformIDs(0, nullptr, &platformCount));
+    std::vector<cl_platform_id> platforms(platformCount, 0);
+    OCL_SAFE_CALL(clGetPlatformIDs(platformCount, platforms.data(), nullptr));
+    
+    cl_device_id device = findDevice(platforms.data(), platformCount);
 
     // TODO 2 Создайте контекст с выбранным устройством
     // См. документацию https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/ -> OpenCL Runtime -> Contexts -> clCreateContext

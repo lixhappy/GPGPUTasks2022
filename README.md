@@ -4,7 +4,7 @@
 
 # Задание 1. A+B.
 
-[![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task01&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task01&event=push)](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml)
 
 Задание
 =======
@@ -18,4 +18,4 @@
 Коментарии
 ==========
 
-Т.к. в ``TODO 6`` исходники кернела считываются по относительному пути ``src/cl/aplusb.cl``, то нужно правильно настроить working directory. Например в случае CLion нужно открыть ``Edit configurations`` -> и указать ``Working directory: .../НАЗВАНИЕПАПКИПРОЕКТА`` (см. [подробнее](https://github.com/GPGPUCourse/GPGPUTasks2022/tree/task01/.figures))
+Т.к. в ``TODO 6`` исходники кернела считываются по относительному пути ``src/cl/aplusb.cl``, то нужно правильно настроить working directory. Например в случае CLion нужно открыть ``Edit configurations`` -> и указать ``Working directory: .../НАЗВАНИЕПАПКИПРОЕКТА`` (см. [подробнее](https://github.com/lixhappy/GPGPUTasks2022/tree/task01/.figures))
