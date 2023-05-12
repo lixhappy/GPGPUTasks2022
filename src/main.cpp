@@ -32,7 +32,20 @@ void reportError(cl_int err, const std::string &filename, int line) {
 #define OCL_SAFE_CALL(expr) reportError(expr, __FILE__, __LINE__)
 
 
-cl_device_id findDevice(cl_platform_id* platforms, cl_uint platformCount, cl_device_type deviceType = CL_DEVICE_TYPE_GPU) {
+struct Device {
+    cl_device_id id;
+    cl_device_type type;
+    cl_platform_id platform;
+
+};
+
+Device findDevice(cl_device_type deviceType = CL_DEVICE_TYPE_GPU) {
+    // Поиск платформ
+    cl_uint platformCount = 0;
+    OCL_SAFE_CALL(clGetPlatformIDs(0, nullptr, &platformCount));
+    std::vector<cl_platform_id> platforms(platformCount, 0);
+    OCL_SAFE_CALL(clGetPlatformIDs(platformCount, platforms.data(), nullptr));
+
     for (size_t platformIndex = 0; platformIndex < platformCount; platformIndex++) {
         cl_platform_id platform = platforms[platformIndex];
         
@@ -43,16 +56,21 @@ cl_device_id findDevice(cl_platform_id* platforms, cl_uint platformCount, cl_dev
         std::vector<cl_device_id> devices(devicesCount, 0);
         OCL_SAFE_CALL(clGetDeviceIDs(platform, deviceType, devicesCount, devices.data(), nullptr));
 
-        return devices[0];
-    }
+        if (devicesCount != 0) {
+            cl_device_id deviceId = devices[0];
+            return Device{deviceId, deviceType, platform};
+            // return CL_SUCCESS;
+        } else if (deviceType == CL_DEVICE_TYPE_GPU) {
+            return findDevice(CL_DEVICE_TYPE_CPU);
+            // OCL_SAFE_CALL(findDevice(device_ret, CL_DEVICE_TYPE_CPU));
+        } else if (deviceType == CL_DEVICE_TYPE_CPU) {
+            return findDevice(CL_DEVICE_TYPE_ALL);
+            // OCL_SAFE_CALL(findDevice(device_ret, CL_DEVICE_TYPE_ALL));
+        }
 
-    if (deviceType == CL_DEVICE_TYPE_GPU) {
-        return findDevice(platforms, platformCount, CL_DEVICE_TYPE_CPU);
-    } else if (deviceType == CL_DEVICE_TYPE_CPU) { 
-        return findDevice(platforms, platformCount, CL_DEVICE_TYPE_ALL);
+        // return CL_DEVICE_NOT_FOUND;
+        reportError(CL_DEVICE_NOT_FOUND, __FILE__, __LINE__);
     }
-    
-    reportError(CL_DEVICE_NOT_FOUND, __FILE__, __LINE__);
 }
 
 int main() {
@@ -62,19 +80,17 @@ int main() {
 
     // TODO 1 По аналогии с предыдущим заданием узнайте, какие есть устройства, и выберите из них какое-нибудь
     // (если в списке устройств есть хоть одна видеокарта - выберите ее, если нету - выбирайте процессор)
-
-    cl_uint platformCount = 0;
-    OCL_SAFE_CALL(clGetPlatformIDs(0, nullptr, &platformCount));
-    std::vector<cl_platform_id> platforms(platformCount, 0);
-    OCL_SAFE_CALL(clGetPlatformIDs(platformCount, platforms.data(), nullptr));
     
-    cl_device_id device = findDevice(platforms.data(), platformCount);
+    Device device = findDevice();
 
     // TODO 2 Создайте контекст с выбранным устройством
     // См. документацию https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/ -> OpenCL Runtime -> Contexts -> clCreateContext
     // Не забывайте проверять все возвращаемые коды на успешность (обратите внимание, что в данном случае метод возвращает
     // код по переданному аргументом errcode_ret указателю)
     // И хорошо бы сразу добавить в конце clReleaseContext (да, не очень RAII, но это лишь пример)
+
+    
+    // OCL_SAFE_CALL(clCreateContext(CL_CONTEXT_PLATFORM, ));
 
     // TODO 3 Создайте очередь выполняемых команд в рамках выбранного контекста и устройства
     // См. документацию https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/ -> OpenCL Runtime -> Runtime APIs -> Command Queues -> clCreateCommandQueue
