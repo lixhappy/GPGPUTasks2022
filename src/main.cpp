@@ -31,8 +31,8 @@ void reportError(cl_int err, const std::string &filename, int line) {
 
 #define OCL_SAFE_CALL(expr) reportError(expr, __FILE__, __LINE__)
 
-uint roundUp128(uint n) {
-    return n + (128 - n % 128) % 128;
+void notify(cl_program program, void *user_data) {
+    std::cout << "Building program" << std::endl;
 }
 
 struct Device {
@@ -91,19 +91,19 @@ int main() {
     // код по переданному аргументом errcode_ret указателю)
     // И хорошо бы сразу добавить в конце clReleaseContext (да, не очень RAII, но это лишь пример)
 
-    cl_int errcode_ret = CL_SUCCESS;
-    cl_context context =  clCreateContext(nullptr, 1, &device.id, nullptr, nullptr, &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
+    cl_int errcode = CL_SUCCESS;
+    cl_context context =  clCreateContext(nullptr, 1, &device.id, nullptr, nullptr, &errcode);
+    OCL_SAFE_CALL(errcode);
 
     // TODO 3 Создайте очередь выполняемых команд в рамках выбранного контекста и устройства
     // См. документацию https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/ -> OpenCL Runtime -> Runtime APIs -> Command Queues -> clCreateCommandQueue
     // Убедитесь, что в соответствии с документацией вы создали in-order очередь задач
     // И хорошо бы сразу добавить в конце clReleaseQueue (не забывайте освобождать ресурсы)
 
-    cl_command_queue commandQueue = clCreateCommandQueue(context, device.id, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
+    cl_command_queue commandQueue = clCreateCommandQueue(context, device.id, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &errcode);
+    OCL_SAFE_CALL(errcode);
 
-    unsigned int n = 1000 * 1000;
+    unsigned int n = 100 * 1000 * 1000;
     // Создаем два массива псевдослучайных данных для сложения и массив для будущего хранения результата
     std::vector<float> as(n, 0);
     std::vector<float> bs(n, 0);
@@ -122,12 +122,12 @@ int main() {
     // или же через метод Buffer Objects -> clEnqueueWriteBuffer
     // И хорошо бы сразу добавить в конце clReleaseMemObject (аналогично, все дальнейшие ресурсы вроде OpenCL под-программы, кернела и т.п. тоже нужно освобождать)
 
-    cl_mem asBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, as.data(), &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
-    cl_mem bsBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, bs.data(), &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
-    cl_mem csBuffer = clCreateBuffer(context, CL_MEM_USE_HOST_PTR, sizeof(float) * n, cs.data(), &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
+    cl_mem asBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, as.data(), &errcode);
+    OCL_SAFE_CALL(errcode);
+    cl_mem bsBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, bs.data(), &errcode);
+    OCL_SAFE_CALL(errcode);
+    cl_mem csBuffer = clCreateBuffer(context, CL_MEM_USE_HOST_PTR, sizeof(float) * n, cs.data(), &errcode);
+    OCL_SAFE_CALL(errcode);
 
     
     // TODO 6 Выполните TODO 5 (реализуйте кернел в src/cl/aplusb.cl)
@@ -149,12 +149,13 @@ int main() {
     // у string есть метод c_str(), но обратите внимание, что передать вам нужно указатель на указатель
 
     const char *kernel_const_sources[1] = {kernel_sources.c_str()};
-    cl_program aplusb = clCreateProgramWithSource(context, 1, kernel_const_sources, nullptr, &errcode_ret);
-    OCL_SAFE_CALL(errcode_ret);
+    cl_program aplusb = clCreateProgramWithSource(context, 1, kernel_const_sources, nullptr, &errcode);
+    OCL_SAFE_CALL(errcode);
 
     // TODO 8 Теперь скомпилируйте программу и напечатайте в консоль лог компиляции
     // см. clBuildProgram
-    
+
+    OCL_SAFE_CALL(clBuildProgram(aplusb, 1, &device.id, nullptr, notify, nullptr));
 
     // А также напечатайте лог компиляции (он будет очень полезен, если в кернеле есть синтаксические ошибки - т.е. когда clBuildProgram вернет CL_BUILD_PROGRAM_FAILURE)
     // Обратите внимание, что при компиляции на процессоре через Intel OpenCL драйвер - в логе указывается, какой ширины векторизацию получилось выполнить для кернела
@@ -166,16 +167,38 @@ int main() {
     //        std::cout << log.data() << std::endl;
     //    }
 
+    size_t log_size = 0;
+    OCL_SAFE_CALL(clGetProgramBuildInfo(aplusb, device.id, CL_PROGRAM_BUILD_LOG, 0, nullptr, &log_size));
+    std::vector<char> log(log_size, 0);
+    OCL_SAFE_CALL(clGetProgramBuildInfo(aplusb, device.id, CL_PROGRAM_BUILD_LOG, log_size, log.data(), nullptr));
+    if (log_size > 1) {
+        std::cout << "Log:" << std::endl;
+        std::cout << log.data() << std::endl;
+    } else {
+        std::cout << "Empty log" << std::endl;
+    }
+
     // TODO 9 Создайте OpenCL-kernel в созданной подпрограмме (в одной подпрограмме может быть несколько кернелов, но в данном случае кернел один)
     // см. подходящую функцию в Runtime APIs -> Program Objects -> Kernel Objects
 
+    cl_kernel kernel = clCreateKernel(aplusb, "aplusb", &errcode);
+    OCL_SAFE_CALL(errcode);
+
     // TODO 10 Выставите все аргументы в кернеле через clSetKernelArg (as_gpu, bs_gpu, cs_gpu и число значений, убедитесь, что тип количества элементов такой же в кернеле)
-    {
+    // {
         // unsigned int i = 0;
         // clSetKernelArg(kernel, i++, ..., ...);
         // clSetKernelArg(kernel, i++, ..., ...);
         // clSetKernelArg(kernel, i++, ..., ...);
         // clSetKernelArg(kernel, i++, ..., ...);
+    // }
+
+    {
+        unsigned int i = 0;
+        clSetKernelArg(kernel, i++, sizeof(void *), &asBuffer);
+        clSetKernelArg(kernel, i++, sizeof(void *), &bsBuffer);
+        clSetKernelArg(kernel, i++, sizeof(void *), &csBuffer);
+        clSetKernelArg(kernel, i++, sizeof(unsigned int), &n);
     }
 
     // TODO 11 Выше увеличьте n с 1000*1000 до 100*1000*1000 (чтобы дальнейшие замеры были ближе к реальности)
