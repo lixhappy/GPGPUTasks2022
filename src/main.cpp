@@ -31,12 +31,14 @@ void reportError(cl_int err, const std::string &filename, int line) {
 
 #define OCL_SAFE_CALL(expr) reportError(expr, __FILE__, __LINE__)
 
+uint roundUp128(uint n) {
+    return n + (128 - n % 128) % 128;
+}
 
 struct Device {
     cl_device_id id;
     cl_device_type type;
     cl_platform_id platform;
-
 };
 
 Device findDevice(cl_device_type deviceType = CL_DEVICE_TYPE_GPU) {
@@ -89,13 +91,17 @@ int main() {
     // код по переданному аргументом errcode_ret указателю)
     // И хорошо бы сразу добавить в конце clReleaseContext (да, не очень RAII, но это лишь пример)
 
-    
-    // OCL_SAFE_CALL(clCreateContext(CL_CONTEXT_PLATFORM, ));
+    cl_int errcode_ret = CL_SUCCESS;
+    cl_context context =  clCreateContext(nullptr, 1, &device.id, nullptr, nullptr, &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
 
     // TODO 3 Создайте очередь выполняемых команд в рамках выбранного контекста и устройства
     // См. документацию https://www.khronos.org/registry/OpenCL/sdk/1.2/docs/man/xhtml/ -> OpenCL Runtime -> Runtime APIs -> Command Queues -> clCreateCommandQueue
     // Убедитесь, что в соответствии с документацией вы создали in-order очередь задач
     // И хорошо бы сразу добавить в конце clReleaseQueue (не забывайте освобождать ресурсы)
+
+    cl_command_queue commandQueue = clCreateCommandQueue(context, device.id, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
 
     unsigned int n = 1000 * 1000;
     // Создаем два массива псевдослучайных данных для сложения и массив для будущего хранения результата
@@ -116,6 +122,14 @@ int main() {
     // или же через метод Buffer Objects -> clEnqueueWriteBuffer
     // И хорошо бы сразу добавить в конце clReleaseMemObject (аналогично, все дальнейшие ресурсы вроде OpenCL под-программы, кернела и т.п. тоже нужно освобождать)
 
+    cl_mem asBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, as.data(), &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
+    cl_mem bsBuffer = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, sizeof(float) * n, bs.data(), &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
+    cl_mem csBuffer = clCreateBuffer(context, CL_MEM_USE_HOST_PTR, sizeof(float) * n, cs.data(), &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
+
+    
     // TODO 6 Выполните TODO 5 (реализуйте кернел в src/cl/aplusb.cl)
     // затем убедитесь, что выходит загрузить его с диска (убедитесь что Working directory выставлена правильно - см. описание задания),
     // напечатав исходники в консоль (if проверяет, что удалось считать хоть что-то)
@@ -126,7 +140,8 @@ int main() {
         if (kernel_sources.size() == 0) {
             throw std::runtime_error("Empty source file! May be you forgot to configure working directory properly?");
         }
-        // std::cout << kernel_sources << std::endl;
+        
+        std::cout << kernel_sources << std::endl;
     }
 
     // TODO 7 Создайте OpenCL-подпрограмму с исходниками кернела
@@ -216,5 +231,11 @@ int main() {
     //        }
     //    }
 
+
+    OCL_SAFE_CALL(clReleaseMemObject(csBuffer));
+    OCL_SAFE_CALL(clReleaseMemObject(bsBuffer));
+    OCL_SAFE_CALL(clReleaseMemObject(asBuffer));
+    OCL_SAFE_CALL(clReleaseCommandQueue(commandQueue));
+    OCL_SAFE_CALL(clReleaseContext(context));
     return 0;
 }
