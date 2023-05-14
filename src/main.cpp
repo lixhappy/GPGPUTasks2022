@@ -148,8 +148,13 @@ int main() {
     // см. Runtime APIs -> Program Objects -> clCreateProgramWithSource
     // у string есть метод c_str(), но обратите внимание, что передать вам нужно указатель на указатель
 
+    const char *kernel_const_sources[1] = {kernel_sources.c_str()};
+    cl_program aplusb = clCreateProgramWithSource(context, 1, kernel_const_sources, nullptr, &errcode_ret);
+    OCL_SAFE_CALL(errcode_ret);
+
     // TODO 8 Теперь скомпилируйте программу и напечатайте в консоль лог компиляции
     // см. clBuildProgram
+    
 
     // А также напечатайте лог компиляции (он будет очень полезен, если в кернеле есть синтаксические ошибки - т.е. когда clBuildProgram вернет CL_BUILD_PROGRAM_FAILURE)
     // Обратите внимание, что при компиляции на процессоре через Intel OpenCL драйвер - в логе указывается, какой ширины векторизацию получилось выполнить для кернела
