@@ -211,18 +211,22 @@ int main() {
     //   - Сохранить событие "кернел запущен" (см. аргумент "cl_event *event")
     //   - Дождаться завершения полунного события - см. в документации подходящий метод среди Event Objects
     {
+        cl_uint workDim = 1;
         size_t workGroupSize = 128;
         size_t global_work_size = (n + workGroupSize - 1) / workGroupSize * workGroupSize;
         timer t;// Это вспомогательный секундомер, он замеряет время своего создания и позволяет усреднять время нескольких замеров
+        cl_event event {};
         for (unsigned int i = 0; i < 20; ++i) {
             // clEnqueueNDRangeKernel...
+            OCL_SAFE_CALL(clEnqueueNDRangeKernel(commandQueue, kernel, 1, nullptr, &global_work_size, &workGroupSize, 0, nullptr, &event));
             // clWaitForEvents...
+            OCL_SAFE_CALL(clWaitForEvents(1, &event));
             t.nextLap();// При вызове nextLap секундомер запоминает текущий замер (текущий круг) и начинает замерять время следующего круга
         }
         // Среднее время круга (вычисления кернела) на самом деле считается не по всем замерам, а лишь с 20%-перцентайля по 80%-перцентайль (как и стандартное отклонение)
         // подробнее об этом - см. timer.lapsFiltered
         // P.S. чтобы в CLion быстро перейти к символу (функции/классу/много чему еще), достаточно нажать Ctrl+Shift+Alt+N -> lapsFiltered -> Enter
-        std::cout << "Kernel average time: " << t.lapAvg() << "+-" << t.lapStd() << " s" << std::endl;
+        std::cout << "Kernel average time: " << t.lapAvg() << " +- " << t.lapStd()  << " s" << std::endl;
 
         // TODO 13 Рассчитайте достигнутые гигафлопcы:
         // - Всего элементов в массивах по n штук
@@ -230,7 +234,7 @@ int main() {
         // - Флопс - это число операций с плавающей точкой в секунду
         // - В гигафлопсе 10^9 флопсов
         // - Среднее время выполнения кернела равно t.lapAvg() секунд
-        std::cout << "GFlops: " << 0 << std::endl;
+        std::cout << "GFlops: " << ((float)n / t.lapAvg()) / pow(10, 9) << std::endl;
 
         // TODO 14 Рассчитайте используемую пропускную способность обращений к видеопамяти (в гигабайтах в секунду)
         // - Всего элементов в массивах по n штук
@@ -238,18 +242,22 @@ int main() {
         // - Обращений к видеопамяти 2*n*sizeof(float) байт на чтение и 1*n*sizeof(float) байт на запись, т.е. итого 3*n*sizeof(float) байт
         // - В гигабайте 1024*1024*1024 байт
         // - Среднее время выполнения кернела равно t.lapAvg() секунд
-        std::cout << "VRAM bandwidth: " << 0 << " GB/s" << std::endl;
+        std::cout << "VRAM bandwidth: " << (double(sizeof(float) * n * 3) / t.lapAvg()) / double(1 << 30) << " GB/s" << std::endl;
     }
 
     // TODO 15 Скачайте результаты вычислений из видеопамяти (VRAM) в оперативную память (RAM) - из cs_gpu в cs (и рассчитайте скорость трансфера данных в гигабайтах в секунду)
     {
         timer t;
+        cl_event event {};
         for (unsigned int i = 0; i < 20; ++i) {
             // clEnqueueReadBuffer...
+            OCL_SAFE_CALL(clEnqueueReadBuffer(commandQueue, csBuffer, CL_TRUE, 0, sizeof(float) * n, cs.data(), 0, nullptr, &event));
+
+            OCL_SAFE_CALL(clWaitForEvents(1, &event));
             t.nextLap();
         }
         std::cout << "Result data transfer time: " << t.lapAvg() << "+-" << t.lapStd() << " s" << std::endl;
-        std::cout << "VRAM -> RAM bandwidth: " << 0 << " GB/s" << std::endl;
+        std::cout << "VRAM -> RAM bandwidth: " << (double(sizeof(float) * n) / t.lapAvg()) / double(1UL << 33) << " GB/s" << std::endl;
     }
 
     // TODO 16 Сверьте результаты вычислений со сложением чисел на процессоре (и убедитесь, что если в кернеле сделать намеренную ошибку, то эта проверка поймает ошибку)
@@ -258,6 +266,22 @@ int main() {
     //            throw std::runtime_error("CPU and GPU results differ!");
     //        }
     //    }
+    {
+        std::vector<float> c(n, 0);
+        timer t;
+        for (unsigned int i = 0; i < n; i++) {
+            c[i] = as[i] + bs[i];
+        }
+        std::cout << "CPU compute time: " << t.nextLap() << " s" << std::endl;
+        std::cout << "CPU GFlops: " << n / t.lapAvg() / pow(10, 9) << std::endl;
+
+        for (unsigned int i = 0; i < n; ++i) {
+            if (cs[i] != c[i]) {
+                throw std::runtime_error("CPU and GPU results differ!");
+            }
+        }
+
+    }
 
 
     OCL_SAFE_CALL(clReleaseMemObject(csBuffer));
