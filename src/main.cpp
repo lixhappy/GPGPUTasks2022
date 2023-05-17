@@ -283,7 +283,8 @@ int main() {
 
     }
 
-
+    OCL_SAFE_CALL(clReleaseKernel(kernel));
+    OCL_SAFE_CALL(clReleaseProgram(aplusb));
     OCL_SAFE_CALL(clReleaseMemObject(csBuffer));
     OCL_SAFE_CALL(clReleaseMemObject(bsBuffer));
     OCL_SAFE_CALL(clReleaseMemObject(asBuffer));
