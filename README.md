@@ -1,10 +1,10 @@
 В этом репозитории предложены задания для курса по вычислениям на видеокартах 2022.
 
-[Остальные задания](https://github.com/GPGPUCourse/GPGPUTasks2022/).
+[Остальные задания](https://github.com/lixhappy/GPGPUTasks2022/).
 
 # Задание 3. Фрактал Мандельброта. Сумма чисел.
 
-[![Build Status](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task03&event=push)](https://github.com/GPGPUCourse/GPGPUTasks2022/actions/workflows/cmake.yml)
+[![Build Status](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml/badge.svg?branch=task03&event=push)](https://github.com/lixhappy/GPGPUTasks2022/actions/workflows/cmake.yml)
 
 0. Сделать fork проекта
 1. Выполнить задания 3.0, 3.1, 3.2 ниже
