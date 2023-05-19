@@ -103,7 +103,7 @@ int main() {
     cl_command_queue commandQueue = clCreateCommandQueue(context, device.id, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &errcode);
     OCL_SAFE_CALL(errcode);
 
-    unsigned int n = 100 * 1000 * 1000;
+    unsigned int n = 50 * 1000 * 1000;
     // Создаем два массива псевдослучайных данных для сложения и массив для будущего хранения результата
     std::vector<float> as(n, 0);
     std::vector<float> bs(n, 0);
