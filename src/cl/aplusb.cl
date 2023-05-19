@@ -16,7 +16,7 @@ __kernel void aplusb(__global const float* a,
 
     if (index == 0) {
         // Если бы printf был не под if, то printf попытался бы исполниться для всех запущенных workItems
-        printf("Just example of printf usage: WARP_SIZE=%d\n", WARP_SIZE);
+        printf("Just example of printf usage: WARP_SIZE=%d\n", 128);
     }
 
     c[index] = a[index] + b[index];
